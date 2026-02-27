@@ -25,13 +25,19 @@
 var NAVTREE =
 [
   [ "agario server", "index.html", [
-    [ "README", "md_README.html", null ]
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ],
+      [ "File Members", "globals.html", [
+        [ "All", "globals.html", null ],
+        [ "Functions", "globals_func.html", null ]
+      ] ]
+    ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"index.html"
+"add_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';
