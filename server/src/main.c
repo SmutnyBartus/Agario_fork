@@ -3,6 +3,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,8 @@ int main(int argc, char *argv[]) {
 
     int main_socket = SetupMainSocket(PORT);
 
-    while (1) {
+    bool game_started = false;
+    while (!game_started) {
         struct ConnectionInfo *conn_info =
             (struct ConnectionInfo *)malloc(sizeof(struct ConnectionInfo));
         if (conn_info == NULL) {
@@ -36,6 +38,8 @@ int main(int argc, char *argv[]) {
         printf("INFO: Connection accepted\n");
         pthread_create(&thread_id, NULL, RunClientThread, (void *)&conn_info);
     }
+
+    // MainLoop();
 
     return 0;
 }
