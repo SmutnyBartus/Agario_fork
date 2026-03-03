@@ -1,4 +1,5 @@
 #include "server.h"
+#include <assert.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -36,7 +37,9 @@ int main(int argc, char *argv[]) {
         }
 
         printf("INFO: Connection accepted\n");
-        pthread_create(&thread_id, NULL, RunClientThread, (void *)&conn_info);
+        printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
+        assert(pthread_create(&thread_id, NULL, RunClientThread,
+                              (void *)conn_info) == 0);
     }
 
     // MainLoop();

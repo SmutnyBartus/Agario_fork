@@ -1,6 +1,8 @@
 #include "server.h"
+#include <bits/pthreadtypes.h>
 #include <errno.h>
 #include <netdb.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,8 +47,8 @@ int SetupMainSocket(const char *port) {
     return main_socket;
 }
 
-void *RunClientThread(void *connection_info) {
-    struct ConnectionInfo *conn_info = (struct ConnectionInfo *)connection_info;
+void *RunClientThread(void *_conn_info) {
+    struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
 
     printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
 
@@ -59,6 +61,7 @@ void *RunClientThread(void *connection_info) {
     }
 
     close(conn_info->socket_fd);
-    free(connection_info);
-    return NULL;
+    free(conn_info);
+
+    pthread_exit(NULL);
 }

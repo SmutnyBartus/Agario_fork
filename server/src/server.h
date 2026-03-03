@@ -28,6 +28,6 @@ int SetupMainSocket(const char *port);
  * packets from
  *
  */
-void *RunClientThread(void *socket_id);
+void *RunClientThread(void *conn_info);
 
 #endif // !SERVER_H
