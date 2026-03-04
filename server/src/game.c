@@ -15,6 +15,21 @@ struct Player {
 };
 struct Player players[MAX_PLAYERS];
 
+struct Fruit {
+    int radius;
+    struct Position2D pos;
+};
+struct Fruit fruits[N_FRUITS];
+
+void InitFruits() {
+    for (int i = 0; i < N_FRUITS; i++) {
+        fruits[i].pos.x = rand() % MAP_WIDTH;
+        fruits[i].pos.y = rand() % MAP_HEIGHT;
+
+        fruits[i].radius = FRUIT_RADIUS;
+    }
+}
+
 int n_players = 0;
 struct Player AddPlayer() {
     struct Player player;
@@ -79,6 +94,61 @@ void ProcessPlayerMovement() {
     pthread_mutex_unlock(&player_angle_mutex);
 }
 
-void ProcessCollisions() {}
+bool AreCirclesColliding(struct Position2D a_pos, int a_radius,
+                         struct Position2D b_pos, int b_radius) {
+    return abs((a_pos.x - b_pos.x) * (a_pos.x - b_pos.x) +
+                   (a_pos.y - b_pos.y) * (a_pos.y - b_pos.y) <
+               (a_radius + b_radius) * (a_radius + b_radius));
+}
+
+void ResolvePlayerCollision(struct Player *bigger, struct Player *smaller) {
+    bigger->radius += smaller->radius;
+    smaller->radius = STARTING_RADIUS;
+
+    smaller->pos.x = rand() % MAP_WIDTH;
+    smaller->pos.y = rand() % MAP_HEIGHT;
+}
+
+void ResolveFruitCollision(struct Player *player, struct Fruit *fruit) {
+    player->radius += FRUIT_REWARD;
+
+    fruit->pos.x = rand() % MAP_WIDTH;
+    fruit->pos.y = rand() % MAP_HEIGHT;
+}
+
+void ProcessCollisions() {
+    for (int i = 0; i < n_players; i++) {
+        for (int j = 0; j < n_players; j++) {
+            if (AreCirclesColliding(players[i].pos, players[i].radius,
+                                    players[j].pos, players[j].radius)) {
+                if (players[i].radius > players[j].radius) {
+                    ResolvePlayerCollision(&players[i], &players[j]);
+                } else if (players[i].radius < players[j].radius) {
+                    ResolvePlayerCollision(&players[j], &players[i]);
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < n_players; i++) {
+        for (int j = 0; j < N_FRUITS; j++) {
+            if (AreCirclesColliding(players[i].pos, players[i].radius,
+                                    fruits[j].pos, fruits[j].radius)) {
+                ResolveFruitCollision(&players[i], &fruits[j]);
+            }
+        }
+    }
+}
 
 void BroadcastGameData() {}
+
+bool game_started = false;
+pthread_mutex_t game_started_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+bool IsGameStarted() { return game_started; }
+
+void SetGameStarted(bool is_game_started) {
+    pthread_mutex_lock(&game_started_mutex);
+    game_started = is_game_started;
+    pthread_mutex_unlock(&game_started_mutex);
+}

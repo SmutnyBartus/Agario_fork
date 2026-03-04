@@ -1,3 +1,4 @@
+#include "game.h"
 #include "server.h"
 #include <assert.h>
 #include <errno.h>
@@ -22,8 +23,7 @@ int main(int argc, char *argv[]) {
 
     int main_socket = SetupMainSocket(PORT);
 
-    bool game_started = false;
-    while (!game_started) {
+    while (!IsGameStarted()) {
         struct ConnectionInfo *conn_info =
             (struct ConnectionInfo *)malloc(sizeof(struct ConnectionInfo));
         if (conn_info == NULL) {
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
                               (void *)conn_info) == 0);
     }
 
-    // MainLoop();
+    MainLoop();
 
     return 0;
 }
