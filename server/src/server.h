@@ -14,6 +14,10 @@ struct ConnectionInfo {
     struct sockaddr_storage their_addr;
     socklen_t their_addr_size;
 
+    int udp_socket_fd;
+    struct sockaddr_storage udp_their_addr;
+    socklen_t udp_their_addr_size;
+
     struct Player player;
 };
 

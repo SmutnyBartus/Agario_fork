@@ -1,6 +1,9 @@
 server
 build
 
+*.vscode
+
+
 # Prerequisites
 *.d
 

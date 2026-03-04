@@ -10,6 +10,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 int SetupMainSocket(const char *port) {
     int status = 0;
@@ -62,11 +64,37 @@ void *RunClientThread(void *_conn_info) {
     }
 
     printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
+    // Establish player name here, before the socket becomes non-blocking
+
+    fcntl(conn_info->socket_fd, F_SETFL, O_NONBLOCK);
+
+    conn_info->udp_socket_fd = socket(PF_INET, SOCK_DGRAM, 0);
+    int yes = 1;
+    setsockopt(conn_info->udp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
+
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    struct addrinfo *servinfo;
+
+    status = getaddrinfo(NULL, "8080", &hints, &servinfo);
+    if (status != 0) {
+        fprintf(stderr, "Error: %s\n", gai_strerror(status));
+        exit(1);
+    }
+
+    status = bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 
     char angle_buf[1 + 1 + 4];
 
-    while (1) {
-        int bytes = recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0);
+    while (recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0) != 0) {
+        int bytes = recvfrom(conn_info->udp_socket_fd, 
+                            angle_buf, sizeof angle_buf, 0, 
+                            (struct sockaddr *)&conn_info->udp_their_addr, 
+                            &conn_info->udp_their_addr_size);
 
         if (bytes == sizeof(angle_buf)) {
             if (angle_buf[0] == CLIENT_PLAYER_DATA_BROADCAST) {
@@ -79,6 +107,7 @@ void *RunClientThread(void *_conn_info) {
         }
     }
 
+    close(conn_info->udp_socket_fd);
     close(conn_info->socket_fd);
     free(conn_info);
 
@@ -97,10 +126,10 @@ void BroadcastGameData(struct GameState game_state) {
         game_state_broadcast.packet_size = sizeof(game_state_broadcast);
         game_state_broadcast.game_state = game_state;
 
-        sendto(conn_info.socket_fd, (void *)&game_state_broadcast,
+        sendto(conn_info.udp_socket_fd, (void *)&game_state_broadcast,
                sizeof((game_state_broadcast)), 0,
-               (struct sockaddr *)(&(conn_info.their_addr)),
-               conn_info.their_addr_size);
+               (struct sockaddr *)(&(conn_info.udp_their_addr)),
+               conn_info.udp_their_addr_size);
     }
 }
 
