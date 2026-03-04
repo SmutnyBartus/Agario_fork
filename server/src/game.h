@@ -5,9 +5,34 @@
 #ifndef GAME_H
 #define GAME_H
 
+#define MAX_PLAYERS 64
+#define STARTING_RADIUS 10
+#define MAP_HEIGHT 10000
+#define MAP_WIDTH 10000
+#define SPEED 100
+#define DELTA_TIME_S 0.01
+
+struct Player;
+
+/*
+ * A function adding a player to the game logic. It returns the Player structure
+ * with the newly created player, which should be passed to the appropriate
+ * thread
+ * @return The index of the newly created player
+ */
+struct Player AddPlayer();
+
 void MainLoop();
-void GetPlayerAngles(int *player_angles, int *n);
 void ProcessPlayerMovement();
 void ProcessCollisions();
+void BroadcastGameData();
+
+/*
+ * A function allowing threads to write their received player angles (in
+ * degrees) concurrently
+ * @param index The index of the player passed to the thread on initialization
+ * @param angle_deg The player angle in degrees received from the client
+ */
+void SetPlayerAngle(int index, int angle_deg);
 
 #endif // !GAME_H

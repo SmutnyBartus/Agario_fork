@@ -12,8 +12,11 @@
 #include <sys/types.h>
 
 #define PORT "8080"
+#define SEED 1000
 
 int main(int argc, char *argv[]) {
+    srand(SEED);
+
     int status = 0;
     pthread_t thread_id = 0;
 
