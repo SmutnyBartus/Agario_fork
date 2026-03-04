@@ -19,7 +19,16 @@
 #define N_FRUITS 100
 #define FRUIT_RADIUS 10
 
-struct Player;
+struct Position2D {
+    int x;
+    int y;
+};
+
+struct Player {
+    int index;
+    int radius;
+    struct Position2D pos;
+};
 
 /*
  * A function adding a player to the game logic. It returns the Player structure

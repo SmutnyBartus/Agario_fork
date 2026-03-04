@@ -69,6 +69,7 @@ void *RunClientThread(void *_conn_info) {
 
 int n_clients;
 struct ConnectionInfo clients[MAX_PLAYERS];
+
 void BroadcastGameData(struct GameState gamestate) {
     for (int i = 0; i < n_clients; i++) {
         struct ConnectionInfo conn_info = clients[i];
@@ -76,4 +77,9 @@ void BroadcastGameData(struct GameState gamestate) {
                (struct sockaddr *)(&(conn_info.their_addr)),
                conn_info.their_addr_size);
     }
+}
+
+void AddClient(struct ConnectionInfo conn_info) {
+    clients[n_clients] = conn_info;
+    n_clients += 1;
 }

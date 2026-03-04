@@ -6,16 +6,6 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 
-struct Position2D {
-    int x;
-    int y;
-};
-
-struct Player {
-    int index;
-    int radius;
-    struct Position2D pos;
-};
 struct Player players[MAX_PLAYERS];
 
 struct Fruit {
@@ -41,6 +31,7 @@ struct Player AddPlayer() {
     player.pos.x = rand() % MAP_WIDTH;
     player.pos.y = rand() % MAP_HEIGHT;
 
+    players[n_players] = player;
     n_players++;
     return player;
 }

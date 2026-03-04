@@ -40,7 +40,8 @@ int main(int argc, char *argv[]) {
         }
 
         printf("INFO: Connection accepted\n");
-        printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
+
+        conn_info->player = AddPlayer();
         assert(pthread_create(&thread_id, NULL, RunClientThread,
                               (void *)conn_info) == 0);
     }
