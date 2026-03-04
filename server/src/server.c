@@ -17,7 +17,7 @@ int SetupMainSocket(const char *port) {
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE;
 
     struct addrinfo *servinfo;
@@ -50,15 +50,33 @@ int SetupMainSocket(const char *port) {
 
 void *RunClientThread(void *_conn_info) {
     struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
+    int status = connect(conn_info->socket_fd,
+                         (const struct sockaddr *)&(conn_info->their_addr),
+                         conn_info->their_addr_size);
+    if (status != 0) {
+        perror(errno);
+        close(conn_info->socket_fd);
+        free(conn_info);
+
+        pthread_exit(NULL);
+    }
 
     printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
 
-    const char *msg = "hi!";
+    char angle_buf[1 + 1 + 4];
 
-    for (int i = 0; i < 5; i++) {
-        sendto(conn_info->socket_fd, msg, strlen(msg), 0,
-               (struct sockaddr *)(&(conn_info->their_addr)),
-               conn_info->their_addr_size);
+    while (1) {
+        int bytes = recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0);
+
+        if (bytes == sizeof(angle_buf)) {
+            if (angle_buf[0] == CLIENT_PLAYER_DATA_BROADCAST) {
+                int *angle = (int *)&angle_buf[2];
+                SetPlayerAngle(conn_info->player.index, *angle);
+            }
+        } else {
+            printf("WARN: read %d bytes from a client, expected %d", bytes,
+                   (int)sizeof(angle_buf));
+        }
     }
 
     close(conn_info->socket_fd);
@@ -70,10 +88,17 @@ void *RunClientThread(void *_conn_info) {
 int n_clients;
 struct ConnectionInfo clients[MAX_PLAYERS];
 
-void BroadcastGameData(struct GameState gamestate) {
+void BroadcastGameData(struct GameState game_state) {
     for (int i = 0; i < n_clients; i++) {
         struct ConnectionInfo conn_info = clients[i];
-        sendto(conn_info.socket_fd, (void *)&gamestate, sizeof((gamestate)), 0,
+
+        struct GameStateBroadcast game_state_broadcast;
+        game_state_broadcast.packet_type = SERVER_GAME_DATA_BROADCAST;
+        game_state_broadcast.packet_size = sizeof(game_state_broadcast);
+        game_state_broadcast.game_state = game_state;
+
+        sendto(conn_info.socket_fd, (void *)&game_state_broadcast,
+               sizeof((game_state_broadcast)), 0,
                (struct sockaddr *)(&(conn_info.their_addr)),
                conn_info.their_addr_size);
     }

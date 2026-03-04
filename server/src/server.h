@@ -17,6 +17,12 @@ struct ConnectionInfo {
     struct Player player;
 };
 
+struct GameStateBroadcast {
+    char packet_type;
+    char packet_size;
+    struct GameState game_state;
+};
+
 /*
  *   A helper function that sets up a TCP socket and returns it
  *   @param port A string representing a port number the socket should bind to
@@ -34,7 +40,7 @@ int SetupMainSocket(const char *port);
  */
 void *RunClientThread(void *conn_info);
 
-void BroadcastGameData(struct GameState gamestate);
+void BroadcastGameData(struct GameState game_state);
 
 void AddClient(struct ConnectionInfo conn_info);
 
