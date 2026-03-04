@@ -1,0 +1,6 @@
+#ifndef GLOBAL_CONSTANTS_H
+#define GLOBAL_CONSTANTS_H
+
+#define MAX_PLAYERS 64
+
+#endif // !GLOBAL_CONSTANTS_H

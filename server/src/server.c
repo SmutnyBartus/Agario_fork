@@ -1,4 +1,5 @@
 #include "server.h"
+#include "global_constants.h"
 #include <bits/pthreadtypes.h>
 #include <errno.h>
 #include <netdb.h>
@@ -64,4 +65,15 @@ void *RunClientThread(void *_conn_info) {
     free(conn_info);
 
     pthread_exit(NULL);
+}
+
+int n_clients;
+struct ConnectionInfo clients[MAX_PLAYERS];
+void BroadcastGameData(struct GameState gamestate) {
+    for (int i = 0; i < n_clients; i++) {
+        struct ConnectionInfo conn_info = clients[i];
+        sendto(conn_info.socket_fd, (void *)&gamestate, sizeof((gamestate)), 0,
+               (struct sockaddr *)(&(conn_info.their_addr)),
+               conn_info.their_addr_size);
+    }
 }

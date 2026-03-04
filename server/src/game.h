@@ -7,7 +7,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#define MAX_PLAYERS 64
 #define STARTING_RADIUS 10
 
 #define MAP_HEIGHT 10000
@@ -33,7 +32,7 @@ struct Player AddPlayer();
 void MainLoop();
 void ProcessPlayerMovement();
 void ProcessCollisions();
-void BroadcastGameData();
+void SendGameData();
 bool IsGameStarted();
 
 /*

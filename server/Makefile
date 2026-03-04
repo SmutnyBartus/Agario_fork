@@ -36,6 +36,7 @@ CFLAGS=-I. -I$(PATHU) -I$(PATHS) -DTEST
 CFLAGS += -Wall
 CFLAGS += -g
 CFLAGS += -O0
+CFLAGS += -lm
 
 RESULTS = $(patsubst $(PATHT)Test%.c,$(PATHR)Test%.txt,$(SRCT) )
 

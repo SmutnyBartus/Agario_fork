@@ -15,19 +15,25 @@ typedef enum PacketID {
     CLIENT_PLAYER_DATA_BROADCAST,
 } PacketID;
 
-struct Player {
+struct ClientPlayer {
     int x;
     int y;
-    int size;
+    int radius;
     char *name;
+};
+
+struct ClientFruit {
+    int x;
+    int y;
+    int radius;
 };
 
 struct GameState {
     int n_players;
-    struct Player *players;
+    struct ClientPlayer *players;
 
     int n_fruits;
-    struct Fruit *fruits;
+    struct ClientFruit *fruits;
 };
 
 struct ClientInput {

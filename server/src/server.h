@@ -5,6 +5,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "packets.h"
 #include <sys/socket.h>
 
 struct ConnectionInfo {
@@ -29,5 +30,7 @@ int SetupMainSocket(const char *port);
  *
  */
 void *RunClientThread(void *conn_info);
+
+void BroadcastGameData(struct GameState gamestate);
 
 #endif // !SERVER_H

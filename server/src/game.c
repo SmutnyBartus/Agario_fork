@@ -1,7 +1,10 @@
 #include "game.h"
+#include "global_constants.h"
+#include "server.h"
 #include <math.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 
 struct Position2D {
     int x;
@@ -60,11 +63,13 @@ int GetPlayerAngle(int index) {
     return player_angles_deg[index * CACHE_PADDING];
 }
 
+struct GameState game_state;
+
 void MainLoop() {
     while (1) {
         ProcessPlayerMovement();
         ProcessCollisions();
-        BroadcastGameData();
+        BroadcastGameData(game_state);
     }
 }
 
@@ -140,7 +145,7 @@ void ProcessCollisions() {
     }
 }
 
-void BroadcastGameData() {}
+void SendGameData() {}
 
 bool game_started = false;
 pthread_mutex_t game_started_mutex = PTHREAD_MUTEX_INITIALIZER;
