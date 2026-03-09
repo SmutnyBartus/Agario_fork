@@ -50,8 +50,7 @@ int SetupMainSocket(const char *port) {
     return main_socket;
 }
 
-void *RunClientThread(void *_conn_info) {
-    struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
+int SetupPlayerSockets(struct ConnectionInfo *conn_info){
     int status = connect(conn_info->socket_fd,
                          (const struct sockaddr *)&(conn_info->their_addr),
                          conn_info->their_addr_size);
@@ -68,9 +67,7 @@ void *RunClientThread(void *_conn_info) {
 
     fcntl(conn_info->socket_fd, F_SETFL, O_NONBLOCK);
 
-    conn_info->udp_socket_fd = socket(PF_INET, SOCK_DGRAM, 0);
-    int yes = 1;
-    setsockopt(conn_info->udp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
+    conn_info->udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -80,13 +77,36 @@ void *RunClientThread(void *_conn_info) {
 
     struct addrinfo *servinfo;
 
-    status = getaddrinfo(NULL, "8080", &hints, &servinfo);
+    status = getaddrinfo(NULL, 0, &hints, &servinfo); // Use port 0 to get the next free port on calling bind
+
     if (status != 0) {
         fprintf(stderr, "Error: %s\n", gai_strerror(status));
         exit(1);
     }
 
-    status = bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen);
+    status = bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen); 
+
+    if(status == -1 && errno != EADDRINUSE){
+        fprintf(stderr, "Error: assignin the next free socket failed");
+        exit(1);
+    }
+
+    // Get info about the player UDP socket
+    status = getsockname(conn_info->udp_socket_fd, 
+        (struct sockaddr *)&conn_info->udp_their_addr, 
+        &conn_info->udp_their_addr_size); 
+
+    if(status == -1){
+        fprintf(stderr, "Error: Getting the info about the next assigned socket failed");
+        exit(1);
+    }
+
+}
+
+void *RunClientThread(void *_conn_info) {
+    struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
+
+    SetupPlayerSockets(conn_info);
 
     char angle_buf[1 + 1 + 4];
 
