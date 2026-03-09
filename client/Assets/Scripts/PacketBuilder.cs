@@ -31,11 +31,11 @@ public class PacketBuilder
         inputPacket[0]=0;
 
 
-        byte[] lengthBytes = BitConverter.GetBytes((ushort)17);
+        byte[] lengthBytes = BitConverter.GetBytes((ushort)16);
         inputPacket[1]= lengthBytes[0];
         inputPacket[2]= lengthBytes[1];
 
-        name = name.Substring(0, Math.Min(name.Length, 16));
+        name = name.Substring(0, Math.Min(name.Length, 15));
         byte[] nameBytes = System.Text.Encoding.ASCII.GetBytes(name);
         for(int i=0;i<nameBytes.Length;i++)
         {

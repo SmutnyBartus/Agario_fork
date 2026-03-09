@@ -35,9 +35,6 @@ public class NetworkManager : MonoBehaviour
         udpThread.Start();
 
 
-
-       
-
         byte[] data = PacketBuilder.BuildInitialConnection("PlayerName");
         SendTCP(data);
         
@@ -103,6 +100,7 @@ public class NetworkManager : MonoBehaviour
             while(packetQueue.Count>0)
             {
                 PacketReader.Packet p = packetQueue.Dequeue();
+                packetHandler.Handle(p);
             }
         }
     }
@@ -117,7 +115,7 @@ public class NetworkManager : MonoBehaviour
     public void OnStartButtonPressed()
     {
         byte[] data = PacketBuilder.BuildGameStarted();
-        SendUDP(data);
+        SendTCP(data);
     }
 
 }
