@@ -2,6 +2,7 @@
 #include "global_constants.h"
 #include <bits/pthreadtypes.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -10,8 +11,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 int SetupMainSocket(const char *port) {
     int status = 0;
@@ -50,7 +49,7 @@ int SetupMainSocket(const char *port) {
     return main_socket;
 }
 
-int SetupPlayerSockets(struct ConnectionInfo *conn_info){
+int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
     int status = connect(conn_info->socket_fd,
                          (const struct sockaddr *)&(conn_info->their_addr),
                          conn_info->their_addr_size);
@@ -77,30 +76,34 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info){
 
     struct addrinfo *servinfo;
 
-    status = getaddrinfo(NULL, 0, &hints, &servinfo); // Use port 0 to get the next free port on calling bind
+    status = getaddrinfo(
+        NULL, 0, &hints,
+        &servinfo); // Use port 0 to get the next free port on calling bind
 
     if (status != 0) {
         fprintf(stderr, "Error: %s\n", gai_strerror(status));
-        exit(1);
+        pthread_exit(NULL);
     }
 
-    status = bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen); 
+    status =
+        bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 
-    if(status == -1 && errno != EADDRINUSE){
+    if (status == -1 && errno != EADDRINUSE) {
         fprintf(stderr, "Error: assignin the next free socket failed");
-        exit(1);
+        pthread_exit(NULL);
     }
 
     // Get info about the player UDP socket
-    status = getsockname(conn_info->udp_socket_fd, 
-        (struct sockaddr *)&conn_info->udp_their_addr, 
-        &conn_info->udp_their_addr_size); 
+    status = getsockname(conn_info->udp_socket_fd,
+                         (struct sockaddr *)&conn_info->udp_their_addr,
+                         &conn_info->udp_their_addr_size);
 
-    if(status == -1){
-        fprintf(stderr, "Error: Getting the info about the next assigned socket failed");
-        exit(1);
+    if (status == -1) {
+        fprintf(
+            stderr,
+            "Error: Getting the info about the next assigned socket failed");
+        pthread_exit(NULL);
     }
-
 }
 
 void *RunClientThread(void *_conn_info) {
@@ -111,19 +114,34 @@ void *RunClientThread(void *_conn_info) {
     char angle_buf[1 + 1 + 4];
 
     while (recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0) != 0) {
-        int bytes = recvfrom(conn_info->udp_socket_fd, 
-                            angle_buf, sizeof angle_buf, 0, 
-                            (struct sockaddr *)&conn_info->udp_their_addr, 
-                            &conn_info->udp_their_addr_size);
+        int bytes =
+            recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof angle_buf, 0,
+                     (struct sockaddr *)&conn_info->udp_their_addr,
+                     &conn_info->udp_their_addr_size);
 
-        if (bytes == sizeof(angle_buf)) {
-            if (angle_buf[0] == CLIENT_PLAYER_DATA_BROADCAST) {
-                int *angle = (int *)&angle_buf[2];
-                SetPlayerAngle(conn_info->player.index, *angle);
+        switch (angle_buf[0]) {
+        case CLIENT_PLAYER_DATA_BROADCAST: {
+            const int angle_message_length = 1 + 2 + 4;
+            if (bytes < angle_message_length) {
+                printf("WARN: expected %d bytes when receiving "
+                       "CLIENT_PLAYER_DATA_BROADCAST, received %d\n",
+                       angle_message_length, bytes);
+                break;
             }
-        } else {
-            printf("WARN: read %d bytes from a client, expected %d", bytes,
-                   (int)sizeof(angle_buf));
+            int *angle = (int *)&angle_buf[3];
+            SetPlayerAngle(conn_info->player.index, *angle);
+
+            break;
+        }
+        case GAME_STARTED: {
+            SetGameStarted(true);
+            break;
+        }
+        default: {
+            printf(
+                "WARN: read %d bytes from a client with an unknown message\n",
+                bytes);
+        }
         }
     }
 

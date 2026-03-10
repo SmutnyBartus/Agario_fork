@@ -51,5 +51,6 @@ bool IsGameStarted();
  * @param angle_deg The player angle in degrees received from the client
  */
 void SetPlayerAngle(int index, int angle_deg);
+void SetGameStarted(bool is_game_started);
 
 #endif // !GAME_H

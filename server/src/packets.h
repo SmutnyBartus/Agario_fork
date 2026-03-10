@@ -5,8 +5,8 @@
 /*
  * Packet format (UDP):
  * Byte 0: packet type
- * Byte 1: packet size in bytes
- * Byte 2 plus: data body
+ * Bytes 1-2: packet size in bytes
+ * Byte 3 plus: data body
  * */
 typedef enum PacketID {
     INITIAL_CONNECTION = 0,
