@@ -17,7 +17,7 @@ public class PacketHandler
     }
 
 
-    private void Handle_Server_Game_Data_Broadcast(byte[] Data)
+    private static void Handle_Server_Game_Data_Broadcast(byte[] Data)
     {
         int offset =0;
         int player_Number=BitConverter.ToInt32(Data,offset);

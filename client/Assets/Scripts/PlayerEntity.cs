@@ -19,7 +19,7 @@ public class PlayerEntity : MonoBehaviour
         float currentScale = transform.localScale.x;
         float newScale = Mathf.Lerp(currentScale, targetRadius, lerpSpeed*Time.deltaTime);
         transform.localScale = new Vector3(newScale, newScale, 1);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, lerSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPosition, lerpSpeed * Time.deltaTime);
     }
 
     public void SetTarget(int x, int y, int radius)

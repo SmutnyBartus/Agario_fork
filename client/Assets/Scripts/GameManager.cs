@@ -6,9 +6,9 @@ public class GameManager : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject fruitPrefab;
     Dictionary<string, GameObject> players;
-
+    public GameObject localPlayer;
     List<GameObject> fruits;
-  
+    public string localPlayerName = "PlayerName";
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -21,7 +21,8 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+         if(Input.GetKeyDown(KeyCode.Space))
+            FindFirstObjectByType<NetworkManager>().OnStartButtonPressed();
     }
 
     
@@ -32,7 +33,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    public UpdateGameState(List<PlayerData> newPlayers, List<FruitData> newFruits)
+    public void UpdateGameState(List<PlayerData> newPlayers, List<FruitData> newFruits)
     {
         foreach(GameObject f in fruits)
             Destroy(f);
@@ -54,6 +55,9 @@ public class GameManager : MonoBehaviour
         GameObject obj = Instantiate(playerPrefab, new Vector3(player.x, player.y, 0), Quaternion.identity);
         obj.transform.localScale = new Vector3(player.radius, player.radius, 1);
         players.Add(player.name,obj);
+
+        if(player.name == localPlayerName)
+            localPlayer = obj;
     }
     void SpawnFruit(FruitData fruit)
     {
