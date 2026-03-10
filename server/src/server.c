@@ -54,11 +54,11 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
                          (const struct sockaddr *)&(conn_info->their_addr),
                          conn_info->their_addr_size);
     if (status != 0) {
-        perror(errno);
+        perror("Failed to connect the player socket: ");
         close(conn_info->socket_fd);
         free(conn_info);
 
-        pthread_exit(NULL);
+        return status;
     }
 
     printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
@@ -82,7 +82,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
 
     if (status != 0) {
         fprintf(stderr, "Error: %s\n", gai_strerror(status));
-        pthread_exit(NULL);
+        return status;
     }
 
     status =
@@ -90,7 +90,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
 
     if (status == -1 && errno != EADDRINUSE) {
         fprintf(stderr, "Error: assignin the next free socket failed");
-        pthread_exit(NULL);
+        return status;
     }
 
     // Get info about the player UDP socket
@@ -102,14 +102,23 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
         fprintf(
             stderr,
             "Error: Getting the info about the next assigned socket failed");
-        pthread_exit(NULL);
+        return status;
     }
+
+    return status;
 }
 
 void *RunClientThread(void *_conn_info) {
     struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
 
-    SetupPlayerSockets(conn_info);
+    int status = SetupPlayerSockets(conn_info);
+    if (status != 0) {
+        printf("ERROR: Failed to setup the player socket\n");
+        close(conn_info->udp_socket_fd);
+        close(conn_info->socket_fd);
+        free(conn_info);
+        pthread_exit(NULL);
+    }
 
     char angle_buf[1 + 1 + 4];
 
