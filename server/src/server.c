@@ -81,7 +81,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
         &servinfo); // Use port 0 to get the next free port on calling bind
 
     if (status != 0) {
-        fprintf(stderr, "Error: %s\n", gai_strerror(status));
+        fprintf(stderr, "getaddrinfo() Error: %s\n", gai_strerror(status));
         return status;
     }
 
