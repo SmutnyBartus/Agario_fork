@@ -8,6 +8,7 @@
  * Bytes 1-2: packet size in bytes
  * Byte 3 plus: data body
  * */
+
 typedef enum PacketID {
     INITIAL_CONNECTION = 0,
     GAME_STARTED,
