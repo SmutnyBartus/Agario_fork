@@ -12,7 +12,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#define PORT "8080"
 #define SEED 1000
 
 int main(int argc, char *argv[]) {

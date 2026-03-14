@@ -1,5 +1,7 @@
 #include "server.h"
 #include "global_constants.h"
+#include <asm-generic/errno-base.h>
+#include <asm-generic/errno.h>
 #include <bits/pthreadtypes.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -77,7 +79,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
     struct addrinfo *servinfo;
 
     status = getaddrinfo(
-        NULL, 0, &hints,
+        NULL, "9090", &hints,
         &servinfo); // Use port 0 to get the next free port on calling bind
 
     if (status != 0) {
@@ -88,6 +90,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
     status =
         bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 
+    freeaddrinfo(servinfo);
     if (status == -1 && errno != EADDRINUSE) {
         fprintf(stderr, "Error: assignin the next free socket failed");
         return status;
@@ -122,7 +125,26 @@ void *RunClientThread(void *_conn_info) {
 
     char angle_buf[1 + 1 + 4];
 
-    while (recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0) != 0) {
+    printf("starting loop");
+    while (1) {
+        status = recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0);
+
+        if (status == 0) {
+            printf("INFO: client %d disconnected\n", conn_info->socket_fd);
+            break;
+        }
+        if (status == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                printf("INFO: client %d is still connected, the socket has no "
+                       "data\n",
+                       conn_info->socket_fd);
+            } else {
+                perror("ERROR: thread TCP recv");
+                break;
+            }
+        }
+
+        printf("1\n");
         int bytes =
             recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof angle_buf, 0,
                      (struct sockaddr *)&conn_info->udp_their_addr,
@@ -154,6 +176,7 @@ void *RunClientThread(void *_conn_info) {
         }
     }
 
+    printf("INFO: exiting thread with socket: %d", conn_info->socket_fd);
     close(conn_info->udp_socket_fd);
     close(conn_info->socket_fd);
     free(conn_info);
