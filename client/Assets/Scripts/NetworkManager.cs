@@ -26,7 +26,7 @@ public class NetworkManager : MonoBehaviour
         stream = tcp.GetStream();
 
         udp = new UdpClient();
-        udp.Connect(ServerIP, udpPort);  
+        udp.Connect(serverIP, udpPort);  
 
 
         isRunning = true;
