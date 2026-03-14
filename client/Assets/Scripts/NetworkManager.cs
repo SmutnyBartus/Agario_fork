@@ -14,15 +14,19 @@ public class NetworkManager : MonoBehaviour
     private Queue<PacketReader.Packet> packetQueue;
     private object queueLock = new object();
     private bool isRunning;
+
+    public string serverIP = "127.0.0.1";
+    public int tcpPort = 8080;
+    public int udpPort = 9090;
     void Start()
     {
         packetQueue = new Queue<PacketReader.Packet>();
          tcp = new TcpClient();
-        tcp.Connect("127.0.0.1", 8080);  
+        tcp.Connect(serverIP, tcpPort);  
         stream = tcp.GetStream();
 
         udp = new UdpClient();
-        udp.Connect("127.0.0.1", 9090);  
+        udp.Connect(serverIP, udpPort);  
 
 
         isRunning = true;
@@ -34,9 +38,6 @@ public class NetworkManager : MonoBehaviour
         udpThread.IsBackground = true;
         udpThread.Start();
 
-
-
-       
 
         byte[] data = PacketBuilder.BuildInitialConnection("PlayerName");
         SendTCP(data);
@@ -103,6 +104,7 @@ public class NetworkManager : MonoBehaviour
             while(packetQueue.Count>0)
             {
                 PacketReader.Packet p = packetQueue.Dequeue();
+                PacketHandler.Handle(p);
             }
         }
     }
@@ -116,8 +118,7 @@ public class NetworkManager : MonoBehaviour
 
     public void OnStartButtonPressed()
     {
-        byte[] data = PacketBuilder.BuildGameStarted();
-        SendUDP(data);
+        SendTCP(PacketBuilder.BuildGameStarted());
     }
 
 }
