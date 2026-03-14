@@ -20,6 +20,7 @@ public class NetworkManager : MonoBehaviour
     public int udpPort = 9090;
     void Start()
     {
+        Debug.Log("NetworkManager Start called");
         try
         {
             
