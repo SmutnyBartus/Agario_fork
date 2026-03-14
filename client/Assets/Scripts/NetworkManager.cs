@@ -20,6 +20,10 @@ public class NetworkManager : MonoBehaviour
     public int udpPort = 9090;
     void Start()
     {
+        try
+        {
+            
+        
         packetQueue = new Queue<PacketReader.Packet>();
          tcp = new TcpClient();
         tcp.Connect(serverIP, tcpPort);  
@@ -41,6 +45,13 @@ public class NetworkManager : MonoBehaviour
 
         byte[] data = PacketBuilder.BuildInitialConnection("PlayerName");
         SendTCP(data);
+        Debug.Log("Connected successfully");
+        }
+        catch(Exception e)
+        {
+            Debug.LogError("Connection failed: " + e.Message);
+        }
+
         
     }
 
