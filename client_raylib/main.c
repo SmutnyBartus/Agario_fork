@@ -10,6 +10,7 @@
 
 #include <arpa/inet.h>
 
+#define HOST "127.0.0.1"
 #define PORT "8080"
 #define MAXDATASIZE 100
 
@@ -65,38 +66,26 @@ int main(void) {
     SetTargetFPS(60);
     int angle_deg = 90;
 
-    // połącz tcp
-    int sockfd, numbytes;
-    char buf[MAXDATASIZE];
+    int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;
-    char s[INET6_ADDRSTRLEN];
+    int numbytes;
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_INET; // set to AF_INET to use IPv4
+    hints.ai_socktype = SOCK_DGRAM;
 
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+    rv = getaddrinfo(HOST, PORT, &hints, &servinfo);
+    if (rv != 0) {
+        fprintf(stderr, "ERROR: getaddrinfo(): %s\n", gai_strerror(rv));
         return 1;
     }
 
-    // loop through all the results and connect to the first we can
+    // loop through all the results and make a socket
     for (p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==
             -1) {
-            perror("client: socket");
-            continue;
-        }
-
-        inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s,
-                  sizeof s);
-        printf("client: attempting connection to %s\n", s);
-
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("client: connect");
-            close(sockfd);
+            perror("ERROR: socket()");
             continue;
         }
 
@@ -104,27 +93,48 @@ int main(void) {
     }
 
     if (p == NULL) {
-        fprintf(stderr, "client: failed to connect\n");
+        fprintf(stderr, "ERROR: failed to create socket\n");
         return 2;
     }
 
-    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s,
-              sizeof s);
-    printf("client: connected to %s\n", s);
+    char buf[1000] = {INITIAL_CONNECTION, 0, 3};
 
-    freeaddrinfo(servinfo); // all done with this structure
+    freeaddrinfo(servinfo);
 
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) {
-        perror("recv");
+    if ((numbytes = sendto(sockfd, buf, 3, 0, p->ai_addr, p->ai_addrlen)) ==
+        -1) {
+        perror("ERROR: sendto()");
         exit(1);
     }
+    printf("INFO: sent INITIAL_CONNECTION message\n");
 
-    buf[numbytes] = '\0';
+    sleep(3);
 
-    printf("client: received '%s'\n", buf);
+    buf[0] = GAME_STARTED;
+    buf[1] = 0;
+    buf[2] = 3;
+
+    if ((numbytes = sendto(sockfd, buf, 3, 0, p->ai_addr, p->ai_addrlen)) ==
+        -1) {
+        perror("ERROR: sendto()");
+        exit(1);
+    }
+    printf("INFO: sent GAME_STARTED message\n");
 
     while (!WindowShouldClose()) {
-        // odbierz udp gamestatu
+        numbytes =
+            recvfrom(sockfd, buf, sizeof buf, 0, p->ai_addr, &p->ai_addrlen);
+        printf("INFO: received %d bytes: %s\n", numbytes, buf);
+
+        switch (buf[0]) {
+        case SERVER_GAME_DATA_BROADCAST: {
+            char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
+            int *n_players = (int *)_n_players;
+
+            printf("There are %d players in the game\n", *n_players);
+            break;
+        }
+        }
 
         BeginDrawing();
 
@@ -145,7 +155,6 @@ int main(void) {
         EndDrawing();
     }
 
-    // zamknij tcp
     close(sockfd);
 
     CloseWindow();

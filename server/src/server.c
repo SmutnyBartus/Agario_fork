@@ -31,17 +31,11 @@ int SetupMainSocket(const char *port) {
         exit(1);
     }
 
-    int main_socket = socket(PF_INET, SOCK_STREAM, 0);
+    int main_socket = socket(PF_INET, SOCK_DGRAM, 0);
     int yes = 1;
     setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
 
     status = bind(main_socket, servinfo->ai_addr, servinfo->ai_addrlen);
-    if (status == -1) {
-        fprintf(stderr, "Bind error: %d\n", errno);
-        exit(1);
-    }
-
-    status = listen(main_socket, 20);
     if (status == -1) {
         fprintf(stderr, "Bind error: %d\n", errno);
         exit(1);
@@ -52,23 +46,10 @@ int SetupMainSocket(const char *port) {
 }
 
 int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
-    int status = connect(conn_info->socket_fd,
-                         (const struct sockaddr *)&(conn_info->their_addr),
-                         conn_info->their_addr_size);
-    if (status != 0) {
-        perror("Failed to connect the player socket: ");
-        close(conn_info->socket_fd);
-        free(conn_info);
-
-        return status;
-    }
-
-    printf("INFO: Running thread with socket: %d\n", conn_info->socket_fd);
-    // Establish player name here, before the socket becomes non-blocking
-
-    fcntl(conn_info->socket_fd, F_SETFL, O_NONBLOCK);
+    int status = 0;
 
     conn_info->udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    fcntl(conn_info->udp_socket_fd, F_SETFL, O_NONBLOCK);
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -79,7 +60,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
     struct addrinfo *servinfo;
 
     status = getaddrinfo(
-        NULL, "9090", &hints,
+        NULL, "0", &hints,
         &servinfo); // Use port 0 to get the next free port on calling bind
 
     if (status != 0) {
@@ -91,22 +72,13 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
         bind(conn_info->udp_socket_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 
     freeaddrinfo(servinfo);
+
     if (status == -1 && errno != EADDRINUSE) {
         fprintf(stderr, "Error: assignin the next free socket failed");
         return status;
     }
 
-    // Get info about the player UDP socket
-    status = getsockname(conn_info->udp_socket_fd,
-                         (struct sockaddr *)&conn_info->udp_their_addr,
-                         &conn_info->udp_their_addr_size);
-
-    if (status == -1) {
-        fprintf(
-            stderr,
-            "Error: Getting the info about the next assigned socket failed");
-        return status;
-    }
+    printf("INFO: Running thread with socket: %d\n", conn_info->udp_socket_fd);
 
     return status;
 }
@@ -118,33 +90,39 @@ void *RunClientThread(void *_conn_info) {
     if (status != 0) {
         printf("ERROR: Failed to setup the player socket\n");
         close(conn_info->udp_socket_fd);
-        close(conn_info->socket_fd);
         free(conn_info);
         pthread_exit(NULL);
     }
+    char buf[3];
+    buf[0] = 'c';
+    buf[1] = '\0';
+    printf("INFO: sending message %s\n", buf);
+    int numbytes = sendto(conn_info->udp_socket_fd, buf, strlen(buf), 0,
+                          (struct sockaddr *)&(conn_info->udp_their_addr),
+                          conn_info->udp_their_addr_size);
+    printf("INFO: sent message %s\n", buf);
 
     char angle_buf[1 + 1 + 4];
-
-    printf("starting loop");
     while (1) {
-        status = recv(conn_info->socket_fd, angle_buf, sizeof angle_buf, 0);
+        status = recvfrom(conn_info->udp_socket_fd, buf, strlen(buf), 0,
+                          (struct sockaddr *)&(conn_info->udp_their_addr),
+                          &conn_info->udp_their_addr_size);
 
         if (status == 0) {
-            printf("INFO: client %d disconnected\n", conn_info->socket_fd);
+            printf("INFO: client %d disconnected\n", conn_info->udp_socket_fd);
             break;
         }
         if (status == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 printf("INFO: client %d is still connected, the socket has no "
                        "data\n",
-                       conn_info->socket_fd);
+                       conn_info->udp_socket_fd);
             } else {
-                perror("ERROR: thread TCP recv");
+                perror("ERROR: thread UDP recv");
                 break;
             }
         }
 
-        printf("1\n");
         int bytes =
             recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof angle_buf, 0,
                      (struct sockaddr *)&conn_info->udp_their_addr,
@@ -174,11 +152,12 @@ void *RunClientThread(void *_conn_info) {
                 bytes);
         }
         }
+
+        usleep(1000 * 100);
     }
 
-    printf("INFO: exiting thread with socket: %d", conn_info->socket_fd);
+    printf("INFO: exiting thread with socket: %d", conn_info->udp_socket_fd);
     close(conn_info->udp_socket_fd);
-    close(conn_info->socket_fd);
     free(conn_info);
 
     pthread_exit(NULL);
@@ -206,4 +185,12 @@ void BroadcastGameData(struct GameState game_state) {
 void AddClient(struct ConnectionInfo conn_info) {
     clients[n_clients] = conn_info;
     n_clients += 1;
+}
+
+void *GetInAddr(struct sockaddr *sa) {
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in *)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }

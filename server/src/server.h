@@ -11,10 +11,6 @@
 #include <sys/socket.h>
 
 struct ConnectionInfo {
-    int socket_fd;
-    struct sockaddr_storage their_addr;
-    socklen_t their_addr_size;
-
     int udp_socket_fd;
     struct sockaddr_storage udp_their_addr;
     socklen_t udp_their_addr_size;
@@ -48,5 +44,7 @@ void *RunClientThread(void *conn_info);
 void BroadcastGameData(struct GameState game_state);
 
 void AddClient(struct ConnectionInfo conn_info);
+
+void *GetInAddr(struct sockaddr *sa);
 
 #endif // !SERVER_H
