@@ -18,7 +18,7 @@ struct ConnectionInfo {
     struct Player player;
 };
 
-struct GameStateBroadcast {
+struct __attribute__((packed)) GameStateBroadcast {
     char packet_type;
     char packet_size;
     struct GameState game_state;
@@ -46,5 +46,7 @@ void BroadcastGameData(struct GameState game_state);
 void AddClient(struct ConnectionInfo conn_info);
 
 void *GetInAddr(struct sockaddr *sa);
+
+int SetupPlayerSockets(struct ConnectionInfo *conn_info);
 
 #endif // !SERVER_H

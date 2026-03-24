@@ -1,11 +1,9 @@
 #include "server.h"
 #include "global_constants.h"
-#include <asm-generic/errno-base.h>
-#include <asm-generic/errno.h>
-#include <bits/pthreadtypes.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +32,7 @@ int SetupMainSocket(const char *port) {
     int main_socket = socket(PF_INET, SOCK_DGRAM, 0);
     int yes = 1;
     setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
+    fcntl(main_socket, F_SETFL, O_NONBLOCK);
 
     status = bind(main_socket, servinfo->ai_addr, servinfo->ai_addrlen);
     if (status == -1) {
@@ -74,11 +73,9 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
     freeaddrinfo(servinfo);
 
     if (status == -1 && errno != EADDRINUSE) {
-        fprintf(stderr, "Error: assignin the next free socket failed");
+        fprintf(stderr, "ERROR: assigning the next free socket failed");
         return status;
     }
-
-    printf("INFO: Running thread with socket: %d\n", conn_info->udp_socket_fd);
 
     return status;
 }
@@ -86,27 +83,12 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
 void *RunClientThread(void *_conn_info) {
     struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
 
-    int status = SetupPlayerSockets(conn_info);
-    if (status != 0) {
-        printf("ERROR: Failed to setup the player socket\n");
-        close(conn_info->udp_socket_fd);
-        free(conn_info);
-        pthread_exit(NULL);
-    }
-    char buf[3];
-    buf[0] = 'c';
-    buf[1] = '\0';
-    printf("INFO: sending message %s\n", buf);
-    int numbytes = sendto(conn_info->udp_socket_fd, buf, strlen(buf), 0,
-                          (struct sockaddr *)&(conn_info->udp_their_addr),
-                          conn_info->udp_their_addr_size);
-    printf("INFO: sent message %s\n", buf);
-
     char angle_buf[1 + 1 + 4];
     while (1) {
-        status = recvfrom(conn_info->udp_socket_fd, buf, strlen(buf), 0,
-                          (struct sockaddr *)&(conn_info->udp_their_addr),
-                          &conn_info->udp_their_addr_size);
+        int status =
+            recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof(angle_buf), 0,
+                     (struct sockaddr *)&(conn_info->udp_their_addr),
+                     &conn_info->udp_their_addr_size);
 
         if (status == 0) {
             printf("INFO: client %d disconnected\n", conn_info->udp_socket_fd);
@@ -123,18 +105,13 @@ void *RunClientThread(void *_conn_info) {
             }
         }
 
-        int bytes =
-            recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof angle_buf, 0,
-                     (struct sockaddr *)&conn_info->udp_their_addr,
-                     &conn_info->udp_their_addr_size);
-
         switch (angle_buf[0]) {
         case CLIENT_PLAYER_DATA_BROADCAST: {
             const int angle_message_length = 1 + 2 + 4;
-            if (bytes < angle_message_length) {
+            if (status < angle_message_length) {
                 printf("WARN: expected %d bytes when receiving "
                        "CLIENT_PLAYER_DATA_BROADCAST, received %d\n",
-                       angle_message_length, bytes);
+                       angle_message_length, status);
                 break;
             }
             int *angle = (int *)&angle_buf[3];
@@ -142,14 +119,12 @@ void *RunClientThread(void *_conn_info) {
 
             break;
         }
-        case GAME_STARTED: {
-            SetGameStarted(true);
-            break;
-        }
         default: {
-            printf(
-                "WARN: read %d bytes from a client with an unknown message\n",
-                bytes);
+            if (status != -1) {
+                printf("WARN: read %d bytes from a client with an unknown "
+                       "message\n",
+                       status);
+            }
         }
         }
 
@@ -167,6 +142,8 @@ int n_clients;
 struct ConnectionInfo clients[MAX_PLAYERS];
 
 void BroadcastGameData(struct GameState game_state) {
+    printf("INFO: sending %lu bytes with game_state to %d clients\n",
+           sizeof(struct GameStateBroadcast), n_clients);
     for (int i = 0; i < n_clients; i++) {
         struct ConnectionInfo conn_info = clients[i];
 

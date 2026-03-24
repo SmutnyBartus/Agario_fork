@@ -56,12 +56,10 @@ int GetPlayerAngle(int index) {
 
 struct GameState game_state;
 
-void MainLoop() {
-    while (1) {
-        ProcessPlayerMovement();
-        ProcessCollisions();
-        BroadcastGameData(game_state);
-    }
+void TickMainLoop() {
+    ProcessPlayerMovement();
+    ProcessCollisions();
+    BroadcastGameData(game_state);
 }
 
 void ProcessPlayerMovement() {

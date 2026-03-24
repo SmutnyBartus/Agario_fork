@@ -38,7 +38,7 @@ struct Player {
  */
 struct Player AddPlayer();
 
-void MainLoop();
+void TickMainLoop();
 void ProcessPlayerMovement();
 void ProcessCollisions();
 void SendGameData();
