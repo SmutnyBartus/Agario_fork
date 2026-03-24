@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -19,7 +21,6 @@ const int screenHeight = 450;
 
 typedef enum PacketID {
     INITIAL_CONNECTION = 0,
-    GAME_STARTED,
     SERVER_GAME_DATA_BROADCAST,
     CLIENT_PLAYER_DATA_BROADCAST,
 } PacketID;
@@ -49,6 +50,12 @@ struct ClientInput {
     int angle_deg;
 };
 
+struct GameStateBroadcast {
+    char packet_type;
+    char packet_size;
+    struct GameState game_state;
+};
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa) {
     if (sa->sa_family == AF_INET) {
@@ -66,10 +73,13 @@ int main(void) {
     SetTargetFPS(60);
     int angle_deg = 90;
 
-    int sockfd;
+    int udp_socket;
     struct addrinfo hints, *servinfo, *p;
     int rv;
     int numbytes;
+
+    struct sockaddr addr = {};
+    socklen_t len = sizeof(addr);
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET; // set to AF_INET to use IPv4
@@ -83,8 +93,8 @@ int main(void) {
 
     // loop through all the results and make a socket
     for (p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==
-            -1) {
+        if ((udp_socket =
+                 socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
             perror("ERROR: socket()");
             continue;
         }
@@ -99,39 +109,56 @@ int main(void) {
 
     char buf[1000] = {INITIAL_CONNECTION, 0, 3};
 
-    freeaddrinfo(servinfo);
-
-    if ((numbytes = sendto(sockfd, buf, 3, 0, p->ai_addr, p->ai_addrlen)) ==
+    if ((numbytes = sendto(udp_socket, buf, 3, 0, p->ai_addr, p->ai_addrlen)) ==
         -1) {
         perror("ERROR: sendto()");
         exit(1);
     }
     printf("INFO: sent INITIAL_CONNECTION message\n");
 
-    sleep(3);
-
-    buf[0] = GAME_STARTED;
-    buf[1] = 0;
-    buf[2] = 3;
-
-    if ((numbytes = sendto(sockfd, buf, 3, 0, p->ai_addr, p->ai_addrlen)) ==
-        -1) {
-        perror("ERROR: sendto()");
-        exit(1);
+    numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
+                        (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
+    printf("INFO: received %d bytes, message type is %d\n", numbytes, buf[0]);
+    for (int i = 0; i < 14; i++) {
+        addr.sa_data[i] = (*(p->ai_addr)).sa_data[i];
     }
-    printf("INFO: sent GAME_STARTED message\n");
+    addr.sa_family = (*(p->ai_addr)).sa_family;
+    len = p->ai_addrlen;
 
+    fcntl(udp_socket, F_SETFL, O_NONBLOCK);
     while (!WindowShouldClose()) {
-        numbytes =
-            recvfrom(sockfd, buf, sizeof buf, 0, p->ai_addr, &p->ai_addrlen);
-        printf("INFO: received %d bytes: %s\n", numbytes, buf);
+        numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
+                            (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
+        if (numbytes == 0) {
+            printf("INFO: server disconnected\n");
+            break;
+        } else if (numbytes == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                printf("INFO: no data received from server\n");
+            } else {
+                perror("ERROR: thread UDP recv");
+                break;
+            }
+        } else {
+            printf("INFO: received %d bytes, message type is %d\n", numbytes,
+                   buf[0]);
+        }
+        if (len != 0) {
+            numbytes =
+                sendto(udp_socket, &angle_deg, sizeof(int), 0, &addr, len);
+            if (numbytes == -1) {
+                perror("ERROR: angle_deg sendto()");
+                exit(1);
+            }
+        }
 
         switch (buf[0]) {
         case SERVER_GAME_DATA_BROADCAST: {
+
             char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
             int *n_players = (int *)_n_players;
 
-            printf("There are %d players in the game\n", *n_players);
+            printf("INFO: There are %d players in the game\n", *n_players);
             break;
         }
         }
@@ -155,7 +182,8 @@ int main(void) {
         EndDrawing();
     }
 
-    close(sockfd);
+    freeaddrinfo(servinfo);
+    close(udp_socket);
 
     CloseWindow();
 
