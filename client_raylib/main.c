@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <math.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -71,7 +72,7 @@ int main(void) {
     struct GameState game_state = {};
 
     SetTargetFPS(60);
-    int angle_deg = 90;
+    char angle_deg = 90;
 
     int udp_socket;
     struct addrinfo hints, *servinfo, *p;
@@ -116,17 +117,23 @@ int main(void) {
     }
     printf("INFO: sent INITIAL_CONNECTION message\n");
 
-    numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
-                        (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
+    numbytes = recvfrom(udp_socket, buf, sizeof(buf), 0, &addr, &len);
     printf("INFO: received %d bytes, message type is %d\n", numbytes, buf[0]);
-    for (int i = 0; i < 14; i++) {
-        addr.sa_data[i] = (*(p->ai_addr)).sa_data[i];
-    }
-    addr.sa_family = (*(p->ai_addr)).sa_family;
-    len = p->ai_addrlen;
 
     fcntl(udp_socket, F_SETFL, O_NONBLOCK);
     while (!WindowShouldClose()) {
+
+        buf[0] = CLIENT_PLAYER_DATA_BROADCAST;
+        buf[1] = 0;
+        buf[2] = 4;
+        buf[3] = angle_deg;
+
+        numbytes = sendto(udp_socket, &buf, sizeof(buf), 0, &addr, len);
+        if (numbytes == -1) {
+            perror("ERROR: angle_deg sendto()");
+            break;
+        }
+
         numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
                             (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
         if (numbytes == 0) {
@@ -143,14 +150,6 @@ int main(void) {
             printf("INFO: received %d bytes, message type is %d\n", numbytes,
                    buf[0]);
         }
-        if (len != 0) {
-            numbytes =
-                sendto(udp_socket, &angle_deg, sizeof(int), 0, &addr, len);
-            if (numbytes == -1) {
-                perror("ERROR: angle_deg sendto()");
-                exit(1);
-            }
-        }
 
         switch (buf[0]) {
         case SERVER_GAME_DATA_BROADCAST: {
@@ -162,6 +161,16 @@ int main(void) {
             break;
         }
         }
+
+        Vector2 mouse_pos = GetMousePosition();
+        Vector2 center = {(float)screenWidth / 2, (float)screenHeight / 2};
+
+        float dx = mouse_pos.x - center.x;
+        float dy = mouse_pos.y - center.y;
+
+        float angle_rad = atan2(dy, dx);
+        angle_deg = RAD2DEG * angle_rad / 10;
+        printf("angle: %d\n", angle_deg);
 
         BeginDrawing();
 

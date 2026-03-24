@@ -63,6 +63,10 @@ int main(int argc, char *argv[]) {
                     printf("ERROR: Failed to setup the player socket\n");
                     free(conn_info);
                 } else {
+                    char buf[3] = {INITIAL_CONNECTION, 0, 3};
+                    sendto(conn_info->udp_socket_fd, buf, sizeof(buf), 0,
+                           (struct sockaddr *)&conn_info->udp_their_addr,
+                           conn_info->udp_their_addr_size);
                     AddClient(*conn_info);
                     conn_info->player = AddPlayer();
                     assert(pthread_create(&thread_id, NULL, RunClientThread,

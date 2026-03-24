@@ -83,7 +83,7 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
 void *RunClientThread(void *_conn_info) {
     struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
 
-    char angle_buf[1 + 1 + 4];
+    char angle_buf[1 + 2 + 1];
     while (1) {
         int status =
             recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof(angle_buf), 0,
@@ -107,15 +107,16 @@ void *RunClientThread(void *_conn_info) {
 
         switch (angle_buf[0]) {
         case CLIENT_PLAYER_DATA_BROADCAST: {
-            const int angle_message_length = 1 + 2 + 4;
+            const int angle_message_length = 1 + 2 + 1;
             if (status < angle_message_length) {
                 printf("WARN: expected %d bytes when receiving "
                        "CLIENT_PLAYER_DATA_BROADCAST, received %d\n",
                        angle_message_length, status);
                 break;
             }
-            int *angle = (int *)&angle_buf[3];
-            SetPlayerAngle(conn_info->player.index, *angle);
+            char angle = angle_buf[3];
+            printf("setting player angle to %d\n", angle);
+            SetPlayerAngle(conn_info->player.index, angle);
 
             break;
         }
