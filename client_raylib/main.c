@@ -150,33 +150,33 @@ int main(void) {
             break;
         }
 
-        // numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
-        //                     (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
-        // if (numbytes == 0) {
-        //     printf("INFO: server disconnected\n");
-        //     break;
-        // } else if (numbytes == -1) {
-        //     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        //         printf("INFO: no data received from server\n");
-        //     } else {
-        //         perror("ERROR: thread UDP recv");
-        //         break;
-        //     }
-        // } else {
-        //     printf("INFO: received %d bytes, message type is %d\n", numbytes,
-        //            buf[0]);
-        // }
+        numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
+                            (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
+        if (numbytes == 0) {
+            printf("INFO: server disconnected\n");
+            break;
+        } else if (numbytes == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                printf("INFO: no data received from server\n");
+            } else {
+                perror("ERROR: thread UDP recv");
+                break;
+            }
+        } else {
+            printf("INFO: received %d bytes, message type is %d\n", numbytes,
+                   buf[0]);
+        }
 
-        // switch (buf[0]) {
-        // case SERVER_GAME_DATA_BROADCAST: {
-        //
-        //     char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
-        //     int *n_players = (int *)_n_players;
-        //
-        //     printf("INFO: There are %d players in the game\n", *n_players);
-        //     break;
-        // }
-        // }
+        switch (buf[0]) {
+        case SERVER_GAME_DATA_BROADCAST: {
+
+            char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
+            int *n_players = (int *)_n_players;
+
+            printf("INFO: There are %d players in the game\n", *n_players);
+            break;
+        }
+        }
 
         // Vector2 mouse_pos = GetMousePosition();
         // Vector2 center = {(float)screenWidth / 2, (float)screenHeight / 2};
