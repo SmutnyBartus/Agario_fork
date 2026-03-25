@@ -7,16 +7,16 @@
 #ifndef GAME_H
 #define GAME_H
 
-#define STARTING_RADIUS 10
+#define STARTING_RADIUS 15
 
-#define MAP_HEIGHT 10000
-#define MAP_WIDTH 10000
+#define MAP_HEIGHT 1000
+#define MAP_WIDTH 1000
 
-#define SPEED 100
+#define SPEED 500
 #define DELTA_TIME_S 0.01
 
 #define FRUIT_REWARD 10
-#define N_FRUITS 10
+#define N_FRUITS 20
 #define FRUIT_RADIUS 10
 
 struct Position2D {

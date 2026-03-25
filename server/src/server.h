@@ -29,6 +29,7 @@ struct ConnectionInfo {
 struct __attribute__((packed)) GameStateBroadcast {
     char packet_type;
     int packet_size;
+    int player_index;
     struct GameState game_state;
 };
 

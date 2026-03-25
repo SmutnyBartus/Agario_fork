@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
     int main_socket = SetupMainSocket(PORT);
     char buf[100];
 
+    InitFruits();
+
     while (1) {
         struct ConnectionInfo *conn_info =
             (struct ConnectionInfo *)malloc(sizeof(struct ConnectionInfo));
@@ -82,7 +84,6 @@ int main(int argc, char *argv[]) {
                 free(conn_info);
             }
         }
-        InitFruits();
         TickMainLoop();
         usleep(1000 * 100);
     }

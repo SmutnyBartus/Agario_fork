@@ -14,8 +14,8 @@ struct Fruit fruits[N_FRUITS];
 
 void InitFruits() {
     for (int i = 0; i < N_FRUITS; i++) {
-        fruits[i].pos.x = 33;
-        fruits[i].pos.y = 33;
+        fruits[i].pos.x = rand() % MAP_WIDTH;
+        fruits[i].pos.y = rand() % MAP_HEIGHT;
 
         fruits[i].radius = FRUIT_RADIUS;
     }
@@ -26,8 +26,8 @@ struct Player AddPlayer() {
     struct Player player;
     player.radius = STARTING_RADIUS;
     player.index = n_players;
-    player.pos.x = 5;
-    player.pos.y = 6;
+    player.pos.x = 200;
+    player.pos.y = 200;
 
     players[n_players] = player;
     n_players++;
@@ -71,8 +71,8 @@ void ProcessPlayerMovement() {
 
     for (int i = 0; i < n_players; i++) {
         float angle_rad = (float)GetPlayerAngle(i) * M_PI / 180;
-        players[i].pos.x += (int)SPEED * DELTA_TIME_S * cos(angle_rad);
-        players[i].pos.y += (int)SPEED * DELTA_TIME_S * sin(angle_rad);
+        players[i].pos.x += (int)(SPEED * DELTA_TIME_S * cos(angle_rad));
+        players[i].pos.y += (int)(SPEED * DELTA_TIME_S * -sin(angle_rad));
 
         if (players[i].pos.x > MAP_WIDTH) {
             players[i].pos.x = MAP_WIDTH;

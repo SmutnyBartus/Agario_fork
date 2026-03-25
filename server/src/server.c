@@ -153,6 +153,7 @@ void BroadcastGameData(struct GameState game_state) {
     game_state_broadcast.game_state = game_state;
 
     for (int i = 0; i < n_clients; i++) {
+        game_state_broadcast.player_index = i;
         struct ConnectionInfo conn_info = clients[i];
 
         sendto(conn_info.udp_socket_fd, (void *)&game_state_broadcast,

@@ -17,9 +17,10 @@
 #define HOST "127.0.0.1"
 #define PORT "8080"
 #define MAXDATASIZE 100
+#define N_FRUITS 20
 
-const int screenWidth = 800;
-const int screenHeight = 450;
+const int screenWidth = 1000;
+const int screenHeight = 1000;
 
 struct Position2D {
     int x;
@@ -60,7 +61,7 @@ struct GameState {
     struct Player players[5];
 
     int n_fruits;
-    struct Fruit fruits[10];
+    struct Fruit fruits[N_FRUITS];
 };
 
 struct ClientInput {
@@ -73,6 +74,8 @@ struct GameStateBroadcast {
     char packet_size;
     struct GameState game_state;
 };
+
+int player_index;
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa) {
@@ -169,6 +172,7 @@ int main(void) {
         struct __attribute__((packed)) GameStateBroadcast{
             char packet_type;
             int packet_size;
+            int player_index;
             struct GameState game_sate;
         } a;
 
@@ -191,11 +195,9 @@ int main(void) {
 
         switch (a.packet_type) {
         case SERVER_GAME_DATA_BROADCAST: {
+            game_state = a.game_sate;
+            player_index = a.player_index;
             printf("INFO: There are %d players in the game\n", a.game_sate.n_players);
-            if(a.game_sate.n_players > 0)
-                printf("INFO: 1st Player is at position (%d, %d)\n", a.game_sate.players[0].pos.x, a.game_sate.players[0].pos.y);
-            printf("INFO: There are %d fruits in the game\n", a.game_sate.n_fruits);
-            printf("INFO: 1st Fruit is at position (%d, %d)\n", a.game_sate.fruits[0].pos.x, a.game_sate.fruits[0].pos.y);
             break;
         }
         }
@@ -210,6 +212,7 @@ int main(void) {
         // angle_deg = RAD2DEG * angle_rad / 10;
         // printf("angle: %d\n", angle_deg);
         //
+
         if (IsKeyDown(KEY_RIGHT))
             angle_deg = 0;
         if (IsKeyDown(KEY_LEFT))
@@ -221,20 +224,20 @@ int main(void) {
         printf("Angle: %d\n", angle_deg);
 
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        /*DrawText("move the ball with arrow keys", 10, 10, 20, DARKGRAY);
+        ClearBackground(LIGHTGRAY);
 
         for (int i = 0; i < game_state.n_players; i++) {
             Vector2 pos = {game_state.players[i].pos.x, game_state.players[i].pos.y};
-            DrawCircleV(pos, game_state.players[i].radius, MAROON);
+            if(game_state.players[i].index == player_index)
+                DrawCircleV(pos, game_state.players[i].radius, DARKBLUE);
+            else
+                DrawCircleV(pos, game_state.players[i].radius, BLACK);
         }
 
         for (int i = 0; i < game_state.n_fruits; i++) {
-            Vector2 pos = {game_state.fruits[i].pos.x, game_state.players[i].pos.y};
+            Vector2 pos = {game_state.fruits[i].pos.x, game_state.fruits[i].pos.y};
             DrawCircleV(pos, 10, MAROON);
         }
-        */
         EndDrawing();
     }
 
