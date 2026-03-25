@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
@@ -71,8 +72,8 @@ int main(void) {
 
     struct GameState game_state = {};
 
-    SetTargetFPS(60);
-    char angle_deg = 90;
+    SetTargetFPS(10);
+    int angle_deg = 90;
 
     int udp_socket;
     struct addrinfo hints, *servinfo, *p;
@@ -117,63 +118,87 @@ int main(void) {
     }
     printf("INFO: sent INITIAL_CONNECTION message\n");
 
-    numbytes = recvfrom(udp_socket, buf, sizeof(buf), 0, &addr, &len);
-    printf("INFO: received %d bytes, message type is %d\n", numbytes, buf[0]);
+    struct __attribute__((packed)) {
+        char type;
+        short length;
+    } buf2;
+    numbytes = recvfrom(udp_socket, &buf2, sizeof(buf2), 0, &addr, &len);
+    printf("INFO: received %d bytes, message type is %d, len is %d\n", numbytes,
+           buf2.type, buf2.length);
 
     fcntl(udp_socket, F_SETFL, O_NONBLOCK);
     while (!WindowShouldClose()) {
 
-        buf[0] = CLIENT_PLAYER_DATA_BROADCAST;
-        buf[1] = 0;
-        buf[2] = 4;
-        buf[3] = angle_deg;
+        struct __attribute__((packed)) {
+            char type;
+            short length;
+            int angle_deg;
+        } angle_buf;
 
-        numbytes = sendto(udp_socket, &buf, sizeof(buf), 0, &addr, len);
+        angle_buf.type = CLIENT_PLAYER_DATA_BROADCAST;
+        angle_buf.length = sizeof(angle_buf);
+        angle_buf.angle_deg = angle_deg;
+
+        assert(angle_buf.length == sizeof(angle_buf));
+
+        printf("INFO: sending angle: %d\n", angle_buf.angle_deg);
+
+        numbytes =
+            sendto(udp_socket, &angle_buf, sizeof(angle_buf), 0, &addr, len);
         if (numbytes == -1) {
             perror("ERROR: angle_deg sendto()");
             break;
         }
 
-        numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
-                            (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
-        if (numbytes == 0) {
-            printf("INFO: server disconnected\n");
-            break;
-        } else if (numbytes == -1) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                printf("INFO: no data received from server\n");
-            } else {
-                perror("ERROR: thread UDP recv");
-                break;
-            }
-        } else {
-            printf("INFO: received %d bytes, message type is %d\n", numbytes,
-                   buf[0]);
-        }
+        // numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
+        //                     (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
+        // if (numbytes == 0) {
+        //     printf("INFO: server disconnected\n");
+        //     break;
+        // } else if (numbytes == -1) {
+        //     if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        //         printf("INFO: no data received from server\n");
+        //     } else {
+        //         perror("ERROR: thread UDP recv");
+        //         break;
+        //     }
+        // } else {
+        //     printf("INFO: received %d bytes, message type is %d\n", numbytes,
+        //            buf[0]);
+        // }
 
-        switch (buf[0]) {
-        case SERVER_GAME_DATA_BROADCAST: {
+        // switch (buf[0]) {
+        // case SERVER_GAME_DATA_BROADCAST: {
+        //
+        //     char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
+        //     int *n_players = (int *)_n_players;
+        //
+        //     printf("INFO: There are %d players in the game\n", *n_players);
+        //     break;
+        // }
+        // }
 
-            char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
-            int *n_players = (int *)_n_players;
-
-            printf("INFO: There are %d players in the game\n", *n_players);
-            break;
-        }
-        }
-
-        Vector2 mouse_pos = GetMousePosition();
-        Vector2 center = {(float)screenWidth / 2, (float)screenHeight / 2};
-
-        float dx = mouse_pos.x - center.x;
-        float dy = mouse_pos.y - center.y;
-
-        float angle_rad = atan2(dy, dx);
-        angle_deg = RAD2DEG * angle_rad / 10;
-        printf("angle: %d\n", angle_deg);
+        // Vector2 mouse_pos = GetMousePosition();
+        // Vector2 center = {(float)screenWidth / 2, (float)screenHeight / 2};
+        //
+        // float dx = mouse_pos.x - center.x;
+        // float dy = mouse_pos.y - center.y;
+        //
+        // float angle_rad = atan2(dy, dx);
+        // angle_deg = RAD2DEG * angle_rad / 10;
+        // printf("angle: %d\n", angle_deg);
+        //
+        if (IsKeyDown(KEY_RIGHT))
+            angle_deg = 0;
+        if (IsKeyDown(KEY_LEFT))
+            angle_deg = 180;
+        if (IsKeyDown(KEY_UP))
+            angle_deg = 90;
+        if (IsKeyDown(KEY_DOWN))
+            angle_deg = 270;
+        printf("Angle: %d\n", angle_deg);
 
         BeginDrawing();
-
         ClearBackground(RAYWHITE);
 
         DrawText("move the ball with arrow keys", 10, 10, 20, DARKGRAY);

@@ -1,5 +1,6 @@
 #include "server.h"
 #include "global_constants.h"
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -83,50 +84,50 @@ int SetupPlayerSockets(struct ConnectionInfo *conn_info) {
 void *RunClientThread(void *_conn_info) {
     struct ConnectionInfo *conn_info = (struct ConnectionInfo *)_conn_info;
 
-    char angle_buf[1 + 2 + 1];
+    struct __attribute__((packed)) {
+        char type;
+        short length;
+        int angle_deg;
+    } angle_buf;
+
     while (1) {
         int status =
-            recvfrom(conn_info->udp_socket_fd, angle_buf, sizeof(angle_buf), 0,
+            recvfrom(conn_info->udp_socket_fd, &angle_buf, sizeof(angle_buf), 0,
                      (struct sockaddr *)&(conn_info->udp_their_addr),
                      &conn_info->udp_their_addr_size);
 
-        if (status == 0) {
-            printf("INFO: client %d disconnected\n", conn_info->udp_socket_fd);
-            break;
-        }
         if (status == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                printf("INFO: client %d is still connected, the socket has no "
-                       "data\n",
+                printf("INFO: client %d has no data\n",
                        conn_info->udp_socket_fd);
             } else {
                 perror("ERROR: thread UDP recv");
                 break;
             }
-        }
+        } else {
+            switch (angle_buf.type) {
+            case CLIENT_PLAYER_DATA_BROADCAST: {
+                const int angle_message_length = sizeof(angle_buf);
+                if (status < angle_buf.length) {
+                    printf("WARN: expected %d bytes when receiving "
+                           "CLIENT_PLAYER_DATA_BROADCAST, received %d\n",
+                           angle_message_length, status);
+                    break;
+                }
+                printf("INFO: setting player angle to %d\n",
+                       angle_buf.angle_deg);
+                SetPlayerAngle(conn_info->player.index, angle_buf.angle_deg);
 
-        switch (angle_buf[0]) {
-        case CLIENT_PLAYER_DATA_BROADCAST: {
-            const int angle_message_length = 1 + 2 + 1;
-            if (status < angle_message_length) {
-                printf("WARN: expected %d bytes when receiving "
-                       "CLIENT_PLAYER_DATA_BROADCAST, received %d\n",
-                       angle_message_length, status);
                 break;
             }
-            char angle = angle_buf[3];
-            printf("setting player angle to %d\n", angle);
-            SetPlayerAngle(conn_info->player.index, angle);
-
-            break;
-        }
-        default: {
-            if (status != -1) {
-                printf("WARN: read %d bytes from a client with an unknown "
-                       "message\n",
-                       status);
+            default: {
+                if (status != -1) {
+                    printf("WARN: read %d bytes from a client with an unknown "
+                           "message\n",
+                           status);
+                }
             }
-        }
+            }
         }
 
         usleep(1000 * 100);
@@ -145,13 +146,14 @@ struct ConnectionInfo clients[MAX_PLAYERS];
 void BroadcastGameData(struct GameState game_state) {
     printf("INFO: sending %lu bytes with game_state to %d clients\n",
            sizeof(struct GameStateBroadcast), n_clients);
+
+    struct GameStateBroadcast game_state_broadcast;
+    game_state_broadcast.packet_type = SERVER_GAME_DATA_BROADCAST;
+    game_state_broadcast.packet_size = sizeof(game_state_broadcast);
+    game_state_broadcast.game_state = game_state;
+
     for (int i = 0; i < n_clients; i++) {
         struct ConnectionInfo conn_info = clients[i];
-
-        struct GameStateBroadcast game_state_broadcast;
-        game_state_broadcast.packet_type = SERVER_GAME_DATA_BROADCAST;
-        game_state_broadcast.packet_size = sizeof(game_state_broadcast);
-        game_state_broadcast.game_state = game_state;
 
         sendto(conn_info.udp_socket_fd, (void *)&game_state_broadcast,
                sizeof((game_state_broadcast)), 0,

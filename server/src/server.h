@@ -18,10 +18,18 @@ struct ConnectionInfo {
     struct Player player;
 };
 
+// struct GameState {
+//     int n_players;
+//     struct ClientPlayer *players;
+//
+//     int n_fruits;
+//     struct ClientFruit *fruits;
+// };
+
 struct __attribute__((packed)) GameStateBroadcast {
     char packet_type;
     char packet_size;
-    struct GameState game_state;
+    int n_players;
 };
 
 /*
