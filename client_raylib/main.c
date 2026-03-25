@@ -21,6 +21,23 @@
 const int screenWidth = 800;
 const int screenHeight = 450;
 
+struct Position2D {
+    int x;
+    int y;
+};
+
+struct Player {
+    int index;
+    int radius;
+    struct Position2D pos;
+};
+
+struct Fruit {
+    int radius;
+    struct Position2D pos;
+};
+
+
 typedef enum PacketID {
     INITIAL_CONNECTION = 0,
     SERVER_GAME_DATA_BROADCAST,
@@ -28,29 +45,28 @@ typedef enum PacketID {
 } PacketID;
 
 struct ClientPlayer {
-    int x;
-    int y;
+    struct Position2D pos;
     int radius;
     char *name;
 };
 
 struct ClientFruit {
-    int x;
-    int y;
+    struct Position2D pos;
     int radius;
 };
 
 struct GameState {
     int n_players;
-    struct ClientPlayer *players;
+    struct Player players[5];
 
     int n_fruits;
-    struct ClientFruit *fruits;
+    struct Fruit fruits[10];
 };
 
 struct ClientInput {
     int angle_deg;
 };
+
 
 struct GameStateBroadcast {
     char packet_type;
@@ -150,7 +166,13 @@ int main(void) {
             break;
         }
 
-        numbytes = recvfrom(udp_socket, buf, sizeof buf, 0,
+        struct __attribute__((packed)) GameStateBroadcast{
+            char packet_type;
+            int packet_size;
+            struct GameState game_sate;
+        } a;
+
+        numbytes = recvfrom(udp_socket, &a, sizeof(a), 0,
                             (struct sockaddr *)&p->ai_addr, &p->ai_addrlen);
         if (numbytes == 0) {
             printf("INFO: server disconnected\n");
@@ -164,16 +186,16 @@ int main(void) {
             }
         } else {
             printf("INFO: received %d bytes, message type is %d\n", numbytes,
-                   buf[0]);
+                   a.packet_type);
         }
 
-        switch (buf[0]) {
+        switch (a.packet_type) {
         case SERVER_GAME_DATA_BROADCAST: {
-
-            char _n_players[4] = {buf[3], buf[4], buf[5], buf[6]};
-            int *n_players = (int *)_n_players;
-
-            printf("INFO: There are %d players in the game\n", *n_players);
+            printf("INFO: There are %d players in the game\n", a.game_sate.n_players);
+            if(a.game_sate.n_players > 0)
+                printf("INFO: 1st Player is at position (%d, %d)\n", a.game_sate.players[0].pos.x, a.game_sate.players[0].pos.y);
+            printf("INFO: There are %d fruits in the game\n", a.game_sate.n_fruits);
+            printf("INFO: 1st Fruit is at position (%d, %d)\n", a.game_sate.fruits[0].pos.x, a.game_sate.fruits[0].pos.y);
             break;
         }
         }
@@ -201,18 +223,18 @@ int main(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        DrawText("move the ball with arrow keys", 10, 10, 20, DARKGRAY);
+        /*DrawText("move the ball with arrow keys", 10, 10, 20, DARKGRAY);
 
         for (int i = 0; i < game_state.n_players; i++) {
-            Vector2 pos = {game_state.players[i].x, game_state.players[i].y};
+            Vector2 pos = {game_state.players[i].pos.x, game_state.players[i].pos.y};
             DrawCircleV(pos, game_state.players[i].radius, MAROON);
         }
 
         for (int i = 0; i < game_state.n_fruits; i++) {
-            Vector2 pos = {game_state.fruits[i].x, game_state.players[i].y};
+            Vector2 pos = {game_state.fruits[i].pos.x, game_state.players[i].pos.y};
             DrawCircleV(pos, 10, MAROON);
         }
-
+        */
         EndDrawing();
     }
 

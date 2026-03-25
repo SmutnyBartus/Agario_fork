@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
                 free(conn_info);
             }
         }
-
+        InitFruits();
         TickMainLoop();
         usleep(1000 * 100);
     }

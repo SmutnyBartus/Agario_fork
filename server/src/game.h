@@ -16,7 +16,7 @@
 #define DELTA_TIME_S 0.01
 
 #define FRUIT_REWARD 10
-#define N_FRUITS 100
+#define N_FRUITS 10
 #define FRUIT_RADIUS 10
 
 struct Position2D {
@@ -26,6 +26,11 @@ struct Position2D {
 
 struct Player {
     int index;
+    int radius;
+    struct Position2D pos;
+};
+
+struct Fruit {
     int radius;
     struct Position2D pos;
 };

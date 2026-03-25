@@ -16,24 +16,22 @@ typedef enum PacketID {
 } PacketID;
 
 struct ClientPlayer {
-    int x;
-    int y;
+    struct Position2D pos;
     int radius;
     char *name;
 };
 
 struct ClientFruit {
-    int x;
-    int y;
+    struct Position2D pos;
     int radius;
 };
 
 struct GameState {
     int n_players;
-    struct ClientPlayer *players;
+    struct Player players[5];
 
     int n_fruits;
-    struct ClientFruit *fruits;
+    struct Fruit fruits[N_FRUITS];
 };
 
 struct ClientInput {

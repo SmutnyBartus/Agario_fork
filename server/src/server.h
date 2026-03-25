@@ -20,16 +20,16 @@ struct ConnectionInfo {
 
 // struct GameState {
 //     int n_players;
-//     struct ClientPlayer *players;
+//     struct ClientPlayer players[5];
 //
 //     int n_fruits;
-//     struct ClientFruit *fruits;
+//     struct ClientFruit fruits[10];
 // };
 
 struct __attribute__((packed)) GameStateBroadcast {
     char packet_type;
-    char packet_size;
-    int n_players;
+    int packet_size;
+    struct GameState game_state;
 };
 
 /*
@@ -54,6 +54,8 @@ void BroadcastGameData(struct GameState game_state);
 void AddClient(struct ConnectionInfo conn_info);
 
 void *GetInAddr(struct sockaddr *sa);
+
+void InitFruits();
 
 int SetupPlayerSockets(struct ConnectionInfo *conn_info);
 

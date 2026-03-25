@@ -5,19 +5,17 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>
 
 struct Player players[MAX_PLAYERS];
 
-struct Fruit {
-    int radius;
-    struct Position2D pos;
-};
 struct Fruit fruits[N_FRUITS];
 
 void InitFruits() {
     for (int i = 0; i < N_FRUITS; i++) {
-        fruits[i].pos.x = rand() % MAP_WIDTH;
-        fruits[i].pos.y = rand() % MAP_HEIGHT;
+        fruits[i].pos.x = 33;
+        fruits[i].pos.y = 33;
 
         fruits[i].radius = FRUIT_RADIUS;
     }
@@ -28,8 +26,8 @@ struct Player AddPlayer() {
     struct Player player;
     player.radius = STARTING_RADIUS;
     player.index = n_players;
-    player.pos.x = rand() % MAP_WIDTH;
-    player.pos.y = rand() % MAP_HEIGHT;
+    player.pos.x = 5;
+    player.pos.y = 6;
 
     players[n_players] = player;
     n_players++;
@@ -59,6 +57,12 @@ struct GameState game_state;
 void TickMainLoop() {
     ProcessPlayerMovement();
     ProcessCollisions();
+
+    game_state.n_players = n_players;
+    memcpy(game_state.players, players, sizeof(game_state.players));
+    game_state.n_fruits = N_FRUITS;
+    memcpy(game_state.fruits, fruits, sizeof(game_state.fruits));
+
     BroadcastGameData(game_state);
 }
 
