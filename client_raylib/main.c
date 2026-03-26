@@ -213,6 +213,22 @@ int main(void) {
         // printf("angle: %d\n", angle_deg);
         //
 
+
+        int mouse_x = GetMouseX();
+        int mouse_y = GetMouseY();
+        
+        //Zrobiłem coś strasznego ale imie Szymona zostanie nieskalane....
+        float cx = game_state.players[player_index].pos.x;
+        float cy = game_state.players[player_index].pos.y;
+
+        float dx = mouse_x - cx;
+        float dy = mouse_y - cy;
+
+        float angle = atan2f(dy, dx);
+
+        angle_deg = -angle * (180.0f / PI);
+        
+        /*
         if (IsKeyDown(KEY_RIGHT))
             angle_deg = 0;
         if (IsKeyDown(KEY_LEFT))
@@ -221,6 +237,7 @@ int main(void) {
             angle_deg = 90;
         if (IsKeyDown(KEY_DOWN))
             angle_deg = 270;
+        */
         printf("Angle: %d\n", angle_deg);
 
         BeginDrawing();
@@ -228,7 +245,7 @@ int main(void) {
 
         for (int i = 0; i < game_state.n_players; i++) {
             Vector2 pos = {game_state.players[i].pos.x, game_state.players[i].pos.y};
-            if(game_state.players[i].index == player_index)
+            if(i == player_index)
                 DrawCircleV(pos, game_state.players[i].radius, DARKBLUE);
             else
                 DrawCircleV(pos, game_state.players[i].radius, BLACK);
