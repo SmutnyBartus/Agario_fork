@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
             }
         }
         TickMainLoop();
-        usleep(1000 * 100);
+        usleep(1000 * 10);
     }
 
     return 0;
