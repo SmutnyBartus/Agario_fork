@@ -1,0 +1,54 @@
+\doxysection{src/\+server.h File Reference}
+\hypertarget{server_8h}{}\label{server_8h}\index{src/server.h@{src/server.h}}
+
+
+Contains game logic.  
+
+
+{\ttfamily \+\#include "{}game.\+h"{}}\newline
+{\ttfamily \+\#include "{}packets.\+h"{}}\newline
+{\ttfamily \+\#include $<$sys/\+socket.\+h$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structConnectionInfo}{Connection\+Info}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{server_8h_a614217d263be1fb1a5f76e2ff7be19a2}\label{server_8h_a614217d263be1fb1a5f76e2ff7be19a2} 
+\+\#define {\bfseries PORT}~"{}8080"{}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{server_8h_ac00584f706eed1bc20671c40ffc88777}\label{server_8h_ac00584f706eed1bc20671c40ffc88777} 
+struct {\bfseries \+\_\+\+\_\+attribute\+\_\+\+\_\+} ((packed)) Game\+State\+Broadcast
+\item 
+\Hypertarget{server_8h_ab9c37104cc74ecd84fff2a6e1364a166}\label{server_8h_ab9c37104cc74ecd84fff2a6e1364a166} 
+int {\bfseries Setup\+Main\+Socket} (const char \texorpdfstring{$\ast$}{*}port)
+\item 
+\Hypertarget{server_8h_afe308ea5ed385b584b3de367f864ed14}\label{server_8h_afe308ea5ed385b584b3de367f864ed14} 
+void \texorpdfstring{$\ast$}{*} {\bfseries Run\+Client\+Thread} (void \texorpdfstring{$\ast$}{*}conn\+\_\+info)
+\item 
+\Hypertarget{server_8h_a443bb8632894946413926f71c41e3325}\label{server_8h_a443bb8632894946413926f71c41e3325} 
+void {\bfseries Broadcast\+Game\+Data} (struct \doxymbox{\hyperlink{structGameState}{Game\+State}} game\+\_\+state)
+\item 
+\Hypertarget{server_8h_a5028c52aac6d442dccccbf53dc32a07e}\label{server_8h_a5028c52aac6d442dccccbf53dc32a07e} 
+void {\bfseries Add\+Client} (struct \doxymbox{\hyperlink{structConnectionInfo}{Connection\+Info}} conn\+\_\+info)
+\item 
+\Hypertarget{server_8h_a55740a947c79984ed6fb9d9e6d21d294}\label{server_8h_a55740a947c79984ed6fb9d9e6d21d294} 
+void \texorpdfstring{$\ast$}{*} {\bfseries Get\+In\+Addr} (struct sockaddr \texorpdfstring{$\ast$}{*}sa)
+\item 
+\Hypertarget{server_8h_afd411114ec6d56dbf2427e1b5bcb9fb5}\label{server_8h_afd411114ec6d56dbf2427e1b5bcb9fb5} 
+void {\bfseries Init\+Fruits} ()
+\item 
+\Hypertarget{server_8h_ad23223badca472270903c3321f92aaf9}\label{server_8h_ad23223badca472270903c3321f92aaf9} 
+int {\bfseries Setup\+Player\+Sockets} (struct \doxymbox{\hyperlink{structConnectionInfo}{Connection\+Info}} \texorpdfstring{$\ast$}{*}conn\+\_\+info)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Contains game logic. 
+
+Contains all core server functions, including multithreaded tasks.

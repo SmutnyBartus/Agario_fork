@@ -1,0 +1,65 @@
+\doxysection{game.\+h}
+\hypertarget{game_8h_source}{}\label{game_8h_source}\index{src/game.h@{src/game.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ GAME\_H}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ GAME\_H}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ STARTING\_RADIUS\ 15}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ MAP\_HEIGHT\ 1000}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ MAP\_WIDTH\ 1000}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ SPEED\ 500}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#define\ DELTA\_TIME\_S\ 0.01}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#define\ FRUIT\_REWARD\ 5}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#define\ N\_FRUITS\ 20}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ FRUIT\_RADIUS\ 10}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPosition2D}{Position2D}}\ \{}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keywordtype}{int}\ x;}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{int}\ y;}
+\DoxyCodeLine{00025\ \};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPlayer}{Player}}\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keywordtype}{int}\ radius;}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPosition2D}{Position2D}}\ pos;}
+\DoxyCodeLine{00031\ \};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structFruit}{Fruit}}\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{int}\ radius;}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPosition2D}{Position2D}}\ pos;}
+\DoxyCodeLine{00036\ \};}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ A\ function\ adding\ a\ player\ to\ the\ game\ logic.\ It\ returns\ the\ Player\ structure}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ with\ the\ newly\ created\ player,\ which\ should\ be\ passed\ to\ the\ appropriate}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ thread}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ @return\ The\ index\ of\ the\ newly\ created\ player}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00044\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPlayer}{Player}}\ AddPlayer();}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keywordtype}{void}\ TickMainLoop();}
+\DoxyCodeLine{00047\ \textcolor{keywordtype}{void}\ ProcessPlayerMovement();}
+\DoxyCodeLine{00048\ \textcolor{keywordtype}{void}\ ProcessCollisions();}
+\DoxyCodeLine{00049\ \textcolor{keywordtype}{void}\ SendGameData();}
+\DoxyCodeLine{00050\ \textcolor{keywordtype}{bool}\ IsGameStarted();}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ A\ function\ allowing\ threads\ to\ write\ their\ received\ player\ angles\ (in}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ degrees)\ concurrently}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ @param\ index\ The\ index\ of\ the\ player\ passed\ to\ the\ thread\ on\ initialization}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ @param\ angle\_deg\ The\ player\ angle\ in\ degrees\ received\ from\ the\ client}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00058\ \textcolor{keywordtype}{void}\ SetPlayerAngle(\textcolor{keywordtype}{int}\ index,\ \textcolor{keywordtype}{int}\ angle\_deg);}
+\DoxyCodeLine{00059\ \textcolor{keywordtype}{void}\ SetGameStarted(\textcolor{keywordtype}{bool}\ is\_game\_started);}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ !GAME\_H}}
+
+\end{DoxyCode}

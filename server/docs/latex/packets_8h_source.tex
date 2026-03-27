@@ -1,0 +1,43 @@
+\doxysection{packets.\+h}
+\hypertarget{packets_8h_source}{}\label{packets_8h_source}\index{src/packets.h@{src/packets.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Packet\ format\ (UDP):}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Byte\ 0:\ packet\ type}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Bytes\ 1-\/2:\ packet\ size\ in\ bytes}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ Byte\ 3\ plus:\ data\ body}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ */}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ PacketID\ \{}
+\DoxyCodeLine{00013\ \ \ \ \ INITIAL\_CONNECTION\ =\ 0,}
+\DoxyCodeLine{00014\ \ \ \ \ SERVER\_GAME\_DATA\_BROADCAST,}
+\DoxyCodeLine{00015\ \ \ \ \ CLIENT\_PLAYER\_DATA\_BROADCAST,}
+\DoxyCodeLine{00016\ \}\ PacketID;}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structClientPlayer}{ClientPlayer}}\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPosition2D}{Position2D}}\ pos;}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{int}\ radius;}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{char}\ *name;}
+\DoxyCodeLine{00022\ \};}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structClientFruit}{ClientFruit}}\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPosition2D}{Position2D}}\ pos;}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{int}\ radius;}
+\DoxyCodeLine{00027\ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structGameState}{GameState}}\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordtype}{int}\ n\_players;}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structPlayer}{Player}}\ players[5];}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordtype}{int}\ n\_fruits;}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structFruit}{Fruit}}\ fruits[N\_FRUITS];}
+\DoxyCodeLine{00035\ \};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{structClientInput}{ClientInput}}\ \{}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{int}\ angle\_deg;}
+\DoxyCodeLine{00039\ \};}
+
+\end{DoxyCode}
