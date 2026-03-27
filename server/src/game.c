@@ -3,10 +3,10 @@
 #include "server.h"
 #include <math.h>
 #include <pthread.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 
 struct Player players[MAX_PLAYERS];
 
@@ -105,6 +105,10 @@ void ResolvePlayerCollision(struct Player *bigger, struct Player *smaller) {
 
     smaller->pos.x = rand() % MAP_WIDTH;
     smaller->pos.y = rand() % MAP_HEIGHT;
+
+    if (bigger->radius > 300) {
+        bigger->radius = STARTING_RADIUS;
+    }
 }
 
 void ResolveFruitCollision(struct Player *player, struct Fruit *fruit) {
