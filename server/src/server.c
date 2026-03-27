@@ -130,7 +130,7 @@ void *RunClientThread(void *_conn_info) {
             }
         }
 
-        usleep(1000 * 10);
+        usleep(SLEEP_TIME);
     }
 
     printf("INFO: exiting thread with socket: %d", conn_info->udp_socket_fd);

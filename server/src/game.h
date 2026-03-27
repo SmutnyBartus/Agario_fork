@@ -12,7 +12,7 @@
 #define MAP_HEIGHT 1000
 #define MAP_WIDTH 1000
 
-#define SPEED 500
+#define SPEED 1000
 #define DELTA_TIME_S 0.01
 
 #define FRUIT_REWARD 5

@@ -92,7 +92,7 @@ int main(void) {
     int lettercount;
 
     InitWindow(screenWidth, screenHeight, "Agario");
-    SetTargetFPS(100);
+    SetTargetFPS(25);
 
     struct GameState game_state = {};
     int angle_deg = 90;

@@ -10,6 +10,8 @@
 #include "packets.h"
 #include <sys/socket.h>
 
+#define SLEEP_TIME 1000 * 40
+
 struct ConnectionInfo {
     int udp_socket_fd;
     struct sockaddr_storage udp_their_addr;
