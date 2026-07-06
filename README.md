@@ -10,3 +10,4 @@
 <video controls width="600">
   <source src="https://github.com/SmutnyBartus/Agario_fork/raw/main/tictactoe.mp4" type="video/mp4">
 </video>
+[Watch video]([https://github.com/USER/REPO/raw/main/tictactoe.mp4](https://github.com/SmutnyBartus/Agario_fork/raw/main/tictactoe.mp4))
