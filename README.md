@@ -7,4 +7,4 @@
 5. Gracz który umrze dostaje respawna
 6. Gracz które osiągnie X masę dostaje punkt i respawnuje się
 
-<video src="./tictactoe.mp4" controls width="600"></video>
+[Open video](./tictactoe.mp4)
