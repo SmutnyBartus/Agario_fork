@@ -7,4 +7,4 @@
 5. Gracz który umrze dostaje respawna
 6. Gracz które osiągnie X masę dostaje punkt i respawnuje się
 
-[Watch video](https://github.com/SmutnyBartus/Agario_fork/raw/main/tictactoe.mp4)
+[Watch preview](https://github.com/SmutnyBartus/Agario_fork/raw/main/tictactoe.mp4)
